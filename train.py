@@ -12,21 +12,33 @@ path = os.path.dirname(os.path.abspath(__file__))
 train_gen = DataGenerator(path='cat_dog/cats_and_dogs_filtered/train')
 val_gen = DataGenerator(path='cat_dog/cats_and_dogs_filtered/validation')
 
-
 if 1:
-    model = tf.keras.models.load_model(cfg.checkpoint_path)
-else:
     input_shape=(128,128,3)
-    model = get_model(input_shape)
+    newmodel = get_model(input_shape)
     opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-    model.compile(optimizer=opt,loss = 'mse',metrics =[tf.keras.metrics.MeanSquaredError()])
 
-model.summary()
-checkpoint = keras.callbacks.ModelCheckpoint(cfg.checkpoint_path,monitor='val_mean_squared_error',verbose=1,save_best_only=True,save_weights_only=False)
+oldmodel=None
+if os.path.isdir(cfg.checkpoint_path):
+    oldmodel = tf.keras.models.load_model(cfg.checkpoint_path)
+
+if oldmodel and (newmodel.get_config() == oldmodel.get_config()):
+    model = oldmodel
+    model.summary()
+    print('\n'*2 ,'################# Continue training old model ##############')
+else:
+    model=newmodel
+    model.summary()
+    print('\n'*2, '################# Model config changed, training new model from sratch #########')
+    
+#import pdb;pdb.set_trace()
+
+model.compile(optimizer=opt, loss={'outputx': 'mse',  'outputy': 'mse'},)
+
+checkpoint = keras.callbacks.ModelCheckpoint(cfg.checkpoint_path,monitor='val_loss',verbose=1,save_best_only=True,save_weights_only=False)
 
 callbacks = [checkpoint]
-if 1:
-    history = model.fit(train_gen, validation_data=val_gen, epochs=100,callbacks=callbacks)
+if 0:
+    history = model.fit(train_gen, validation_data=val_gen, epochs=10,callbacks=callbacks)
 
     # summarize history for loss
     plt.plot(history.history['loss'])
@@ -38,12 +50,15 @@ if 1:
     plt.show()
 
 #model.evaluate(val_gen)
-#import pdb;pdb.set_trace()
-
+model = tf.keras.models.load_model(cfg.checkpoint_path)
 ypred = model.predict(val_gen)
 
 for i in range(3):
     batch_x, batch_y  = val_gen.__getitem__(0)
     pred_y = model.predict(batch_x)
-    for i in range(len(pred_y)):
-        print(f'actual:{batch_y[i]}, pred: {pred_y[i][0]}')
+   
+
+    for j in range(len(pred_y)):
+        print(f'actual:{batch_y[j]}, pred: {pred_y[j]}')
+
+import pdb;pdb.set_trace()

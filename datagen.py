@@ -11,13 +11,14 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.write = write
         self.batch_size = batch_size
         self.outdim = outdim
-        self.x_shift_max = 20
+        self.x_shift_max = 1
         self.y_shift_max = 20
         self.curr_epoch=0
         self.xdata = self.load_data()
         
         self.shuffle = True
         self.on_epoch_end()
+        self.img_indx=0
         
 
     def __len__(self):
@@ -55,7 +56,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         if img1.shape[0]!=128 or img1.shape[1]!=128 or img2.shape[0]!=128 or img2.shape[1]!=128:
             print('img1shape',img1.shape)
             print('img2shape',img2.shape)
-            import pdb;pdb.set_trace() 
+            #import pdb;pdb.set_trace() 
 
         return img1, img2, xshift, yshift
 
@@ -63,10 +64,13 @@ class DataGenerator(tf.keras.utils.Sequence):
         'Generate batchsize samples Eg: X: (nsamples, *dim, nsamples'
         #X = np.empty(())
         batch_x = []
+        batch_y = []
+        batch_x.append(np.zeros((len(list_indx), *self.outdim)))
+        batch_x.append(np.zeros((len(list_indx), *self.outdim)))
         
-        batch_x.append(np.zeros((len(list_indx), *self.outdim)))
-        batch_x.append(np.zeros((len(list_indx), *self.outdim)))
-        batch_y = np.zeros(len(list_indx))
+        batch_y.append(np.zeros((len(list_indx))))
+        batch_y.append(np.zeros((len(list_indx))))
+
         for i in range(len(list_indx)):
             img = self.xdata[list_indx[i]]
             im1,im2,xshift,yshift = self.shift_aug(img)
@@ -80,14 +84,17 @@ class DataGenerator(tf.keras.utils.Sequence):
                 cv2.imshow('im2',im2)
                 cv2.waitKey(0)
             if self.write:
-                nam = 'samples/'+str(np.random.randint(0,10000)) +"_"
+                nam = 'samples/'+str(self.img_indx) +"_"
+                self.img_indx+=1
                 cv2.imwrite(nam+'.png', im1)
                 cv2.imwrite(nam+'x_'+str(xshift)+'__y_'+str(yshift)+'.png', im2)
 
             batch_x[0][i] = im1/255.0
             batch_x[1][i] = im2/255.0
 
-            batch_y[i] = np.float(yshift)#/self.y_shift_max
+            
+            batch_y[0][i] = xshift
+            batch_y[1][i] = yshift #/self.y_shift_max
         return batch_x, batch_y
 
     def load_data(self):
@@ -113,10 +120,12 @@ if __name__ == '__main__':
     # unzip cats_and_dogs_filtered -d cat_dog
     datagen = DataGenerator(path = 'cat_dog/cats_and_dogs_filtered/validation',show=True,write=True)
     batch_x, batch_y  = datagen.__getitem__(0)
+    #import pdb;pdb.set_trace()
     print('batchx[0]',batch_x[0].shape)
     print('batchy len',len(batch_y))
     print('batch_y',batch_y)
-    #import pdb;pdb.set_trace()
+    
+    import pdb;pdb.set_trace()
     
 
 
