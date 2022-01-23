@@ -5,8 +5,10 @@ import numpy as np
 
 class DataGenerator(tf.keras.utils.Sequence):
     'Initialisation'
-    def __init__(self, path='train', batch_size=8, outdim=(128,128,3)):
+    def __init__(self, path='train', batch_size=8, outdim=(128,128,3),show=False, write=False):
         self.data_path =path
+        self.show = show
+        self.write = write
         self.batch_size = batch_size
         self.outdim = outdim
         self.x_shift_max = 20
@@ -45,8 +47,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         y1 = np.random.randint(0,self.y_shift_max)
         y2 = np.random.randint(0,self.y_shift_max)
         
-        img1 = img[x1:x1+self.outdim[1], y1:y1+self.outdim[0],:]
-        img2 = img[x2:x2+self.outdim[1], y2:y2+self.outdim[0],:]
+        img1 = img[y1:y1+self.outdim[0], x1:x1+self.outdim[1],:]
+        img2 = img[y2:y2+self.outdim[0], x2:x2+self.outdim[1],:]
         xshift = x2-x1
         yshift = y2-y1
 
@@ -69,7 +71,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             img = self.xdata[list_indx[i]]
             im1,im2,xshift,yshift = self.shift_aug(img)
 
-            if 0:
+            if self.show:
                 print(f'xshift{xshift},yshift{yshift}')
                 
                 cv2.namedWindow('im1',cv2.WINDOW_NORMAL)
@@ -77,10 +79,10 @@ class DataGenerator(tf.keras.utils.Sequence):
                 cv2.imshow('im1',im1)
                 cv2.imshow('im2',im2)
                 cv2.waitKey(0)
-                if 1:
-                    nam = 'samples/'+str(np.random.randint(0,10000)) +"_"
-                    cv2.imwrite(nam+'.png', im1)
-                    cv2.imwrite(nam+str(yshift)+'.png', im2)
+            if self.write:
+                nam = 'samples/'+str(np.random.randint(0,10000)) +"_"
+                cv2.imwrite(nam+'.png', im1)
+                cv2.imwrite(nam+'x_'+str(xshift)+'__y_'+str(yshift)+'.png', im2)
 
             batch_x[0][i] = im1/255.0
             batch_x[1][i] = im2/255.0
@@ -109,12 +111,12 @@ class DataGenerator(tf.keras.utils.Sequence):
 if __name__ == '__main__':
     # wget --no-check-certificate https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip -O cats_and_dogs_filtered.zip
     # unzip cats_and_dogs_filtered -d cat_dog
-    datagen = DataGenerator(path = 'cat_dog/cats_and_dogs_filtered/validation')
+    datagen = DataGenerator(path = 'cat_dog/cats_and_dogs_filtered/validation',show=True,write=True)
     batch_x, batch_y  = datagen.__getitem__(0)
     print('batchx[0]',batch_x[0].shape)
     print('batchy len',len(batch_y))
     print('batch_y',batch_y)
-    import pdb;pdb.set_trace()
+    #import pdb;pdb.set_trace()
     
 
 

@@ -6,6 +6,11 @@ from keras import layers
 from datagen import DataGenerator
 from keras.applications import resnet_v2
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(gpus[0], True)
+# your code
+
+
 def get_base_Resnet(input_shape=(128,128,3)):
     model1 =  resnet_v2.ResNet50V2(include_top=False, weights='imagenet', input_shape=input_shape)
     layer_name = 'conv2_block1_2_relu'

@@ -1,0 +1,4 @@
+
+checkpoint_path = 'weights/'
+
+

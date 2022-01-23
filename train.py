@@ -6,15 +6,15 @@ from matplotlib import pyplot as plt
 import os
 import numpy as np
 np.set_printoptions(precision=2)
+import config as cfg
 
 path = os.path.dirname(os.path.abspath(__file__))
 train_gen = DataGenerator(path='cat_dog/cats_and_dogs_filtered/train')
 val_gen = DataGenerator(path='cat_dog/cats_and_dogs_filtered/validation')
 
-checkpoint_path = 'weights/'
 
 if 1:
-    model = tf.keras.models.load_model(checkpoint_path)
+    model = tf.keras.models.load_model(cfg.checkpoint_path)
 else:
     input_shape=(128,128,3)
     model = get_model(input_shape)
@@ -22,7 +22,7 @@ else:
     model.compile(optimizer=opt,loss = 'mse',metrics =[tf.keras.metrics.MeanSquaredError()])
 
 model.summary()
-checkpoint = keras.callbacks.ModelCheckpoint(checkpoint_path,monitor='val_mean_squared_error',verbose=1,save_best_only=True,save_weights_only=False)
+checkpoint = keras.callbacks.ModelCheckpoint(cfg.checkpoint_path,monitor='val_mean_squared_error',verbose=1,save_best_only=True,save_weights_only=False)
 
 callbacks = [checkpoint]
 if 1:

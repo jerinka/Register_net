@@ -1,3 +1,7 @@
+#Folders and fles
+cat_dog/
+venv3/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
